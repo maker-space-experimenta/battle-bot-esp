@@ -1,0 +1,22 @@
+<div class="controls">
+  <div class="control_speed" [ngStyle]="{ 'background-color': bgColor }">
+    <ngx-joystick #semiJoystickSpeed [options]="semiOptionsSpeed" (move)="onMoveControlSpeed($event)" (end)="onEndControlSpeed($event)">
+    </ngx-joystick>
+  </div>
+
+  <div class="control_c">
+    <div class="btn" (click)="onButtonArmBot()">arm bot</div>
+    <div class="btn" (click)="disarmBot()">disarm bot</div>
+
+    <div class="console">
+      <app-logger></app-logger>
+    </div>
+
+    <div class="btn bottom" (click)="disarmBot()">fire weapon</div>
+  </div>
+
+  <div class="control_steer" [ngStyle]="{ 'background-color': bgColor }">
+    <ngx-joystick #semiJoystickSteer [options]="semiOptionsSteer" (move)="onMoveControlSteer($event)" (end)="onEndControlSteer($event)">
+    </ngx-joystick>
+  </div>
+</div>
