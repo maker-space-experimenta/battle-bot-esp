@@ -1,0 +1,61 @@
+.controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    
+    .control_speed {
+        position: relative;
+        height: 100vh;
+        width: 40%;
+        background-color: #590038;
+    }
+
+    .control_steer {
+        height: 100vh;
+        width: 40%;
+        background-color: #590038;
+        position: relative;
+    }
+
+
+    .control_c {
+        position: relative;
+        height: 100vh;
+        width: 20%;
+        background-color: rgba(0,0,255,0.2);
+
+        display: flex;
+        align-items: center;
+        justify-content: start;
+
+        flex-direction: column;
+
+
+        .console {
+            background-color: #1d1d1d;
+            color: #fff;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .btn {
+            width: 80%;
+            padding: 1rem;
+            margin: 0.25rem;
+            background-color: rgba(0,0,0,0.2);
+            text-align: center;
+            line-height: 1rem;
+
+            &.bottom {
+                height: 3rem;
+                margin-top: auto;
+                line-height: 3rem;
+
+            }
+        }
+    }
+}
