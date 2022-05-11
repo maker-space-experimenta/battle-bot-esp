@@ -25,26 +25,3 @@
         overflow: hidden;
     }
 }
-
-.settings {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-
-    z-index: 1001;
-
-    background-color: #1e1e1e;
-    color: #cccccc;
-
-    h1,h2,h3,h4,h5,h6 {
-        font-size: 1rem;
-        color: #94dcfe;
-    }
-
-    &.show{
-        display: block;
-    }
-}
