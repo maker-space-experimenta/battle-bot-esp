@@ -15,6 +15,7 @@ export class LoggerService {
   Log(val: string) {
     this._logs.push(val);
     this.logs.next(this._logs);
+    console.log(val);
   }
 
 }

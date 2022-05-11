@@ -23,7 +23,7 @@ export class LoggerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // this.logsSub = this.logger.logs.subscribe(val => this.logs = val.reverse());
+    this.logsSub = this.logger.logs.subscribe(val => this.logs = val.reverse());
   }
 
 }

@@ -1,0 +1,28 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col joystick_container">
+            <ngx-joystick #semiJoystickSpeed [options]="semiOptionsSpeed" (move)="onMoveControlSpeed($event)"
+                (end)="onEndControlSpeed($event)"></ngx-joystick>
+        </div>
+
+        <div class="col-2 menu">
+
+            <button type="button" (click)="onButtonArmBot()" class="btn btn-danger w-100" *ngIf="!armed">arm
+                bot</button>
+            <button type="button" (click)="disarmBot()" class="btn btn-warning w-100" *ngIf="armed">disarm bot</button>
+
+            <div class="console">
+                <app-logger></app-logger>
+            </div>
+
+            <a [routerLink]="['/settings']" class="btn btn-link">Settings</a>
+        </div>
+
+        <div class="col joystick_container">
+            <ngx-joystick #semiJoystickSteer [options]="semiOptionsSteer" (move)="onMoveControlSteer($event)"
+                (end)="onEndControlSteer($event)">
+            </ngx-joystick>
+        </div>
+
+    </div>
+</div>
