@@ -1,15 +1,13 @@
 
 #include <Arduino.h>
+#include <DNSServer.h>
 #include <WiFi.h>
+#include <AsyncTCP.h>
 #include "ESPAsyncWebServer.h"
 #include "ESP32Servo.h"
 
-#include <Preferences.h>
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiAP.h>
-
 #include <settings.h>
+#include <html.h>
 
 #define pinStandby 2
 
@@ -24,16 +22,32 @@
 char *ssid = SSID;
 char *password = PASSWD;
 
-
+DNSServer dnsServer;
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
-String header;
 
 int motor_a = 0;
 int motor_b = 0;
 bool armed = false;
 
 bool clientConnected = false;
+
+class CaptiveRequestHandler : public AsyncWebHandler
+{
+public:
+  CaptiveRequestHandler() {}
+  virtual ~CaptiveRequestHandler() {}
+
+  bool canHandle(AsyncWebServerRequest *request)
+  {
+    return true;
+  }
+
+  void handleRequest(AsyncWebServerRequest *request)
+  {
+    request->send_P(200, "text/html", index_html);
+  }
+};
 
 void disarm()
 {
@@ -43,7 +57,6 @@ void disarm()
   armed = false;
   digitalWrite(pinPWMA, LOW);
   digitalWrite(pinPWMB, LOW);
-
 }
 
 void arm()
@@ -103,58 +116,25 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   }
 }
 
-void startWIFI()
+void setup()
 {
+  Serial.begin(115200);
 
-  // if (!WiFi.config(local_IP, gateway, subnet))
-  // {
-  //   Serial.println("STA Failed to configure");
-  // }
-
-  // WiFi.softAP(wifi_ssid, wifi_passwd);
-
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
-  }
-
-  // Print ESP32 Local IP Address
-  Serial.println(WiFi.localIP());
-}
-
-void startServer()
-{
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, password);
 
   ws.onEvent(onEvent);
   server.addHandler(&ws);
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->redirect("http://battlebot.hmnd.de?bot=" + WiFi.localIP().toString()); });
+            {
+      request->send_P(200, "text/html", index_html2); 
+      Serial.println("Client Connected"); });
 
-  server.on("/metrics", HTTP_GET, [](AsyncWebServerRequest *request)
-            { 
-              String metrics = R"rawliteral(
-{
-  "motor_a_speed" : %motor_a_speed%, 
-  "motor_b_speed" : %motor_b_speed%,
-  "armed": %armed%
-}
-)rawliteral";
-
-              metrics.replace("%motor_a_speed%", String(motor_a));
-              metrics.replace("%motor_b_speed%", String(motor_b));
-              metrics.replace("%armed%", String(armed));
-              
-              request->send(200, "application/json", metrics); });
-
+  dnsServer.start(53, "*", WiFi.softAPIP());
+  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
   server.begin();
-}
 
-void startBot()
-{
   pinMode(pinStandby, OUTPUT);
 
   pinMode(pinDirA1, OUTPUT);
@@ -165,53 +145,31 @@ void startBot()
   disarm();
 }
 
-void setup()
-{
-  Serial.begin(115200);
-
-  startWIFI();
-  startServer();
-
-  startBot();
-}
-
 void loop()
 {
+  dnsServer.processNextRequest();
   AsyncWebSocket::AsyncWebSocketClientLinkedList clients = ws.getClients();
 
   if (clients.length() > 0)
   {
-    // Serial.print("Motor A: ");
-    // Serial.print(motor_a);
-    // Serial.print(" - ");
-    // Serial.print("Motor B: ");
-    // Serial.print(motor_b);
-    // Serial.println(";");
-
     if (motor_a > 0)
     {
       int mapped = map(motor_a, 0, 100, 0, 255);
-      // Serial.print("run motor a clockwise - ");
-      // Serial.println(mapped);
 
       digitalWrite(pinDirA1, HIGH);
       digitalWrite(pinDirA2, LOW);
       analogWrite(pinPWMA, mapped);
-      // digitalWrite(pinPWMA, HIGH);
-
     }
     else if (motor_a < 0)
     {
       int mapped = map(motor_a * -1, 0, 100, 0, 255);
-      // Serial.println("run motor a counterclockwise - ");
-      // Serial.println(mapped);
 
       digitalWrite(pinDirA1, LOW);
       digitalWrite(pinDirA2, HIGH);
       analogWrite(pinPWMA, mapped);
-      // digitalWrite(pinPWMA, HIGH);
-
-    } else {
+    }
+    else
+    {
       digitalWrite(pinDirA1, LOW);
       digitalWrite(pinDirA2, HIGH);
       analogWrite(pinPWMA, 0);
@@ -231,7 +189,9 @@ void loop()
       digitalWrite(pinDirB1, LOW);
       digitalWrite(pinDirB2, HIGH);
       analogWrite(pinPWMB, mapped);
-    } else {
+    }
+    else
+    {
       digitalWrite(pinDirB1, LOW);
       digitalWrite(pinDirB2, HIGH);
       analogWrite(pinPWMB, 0);
@@ -240,6 +200,5 @@ void loop()
   else
   {
     disarm();
-    // Serial.println("no clients connected");
   }
 }
